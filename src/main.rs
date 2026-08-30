@@ -147,6 +147,7 @@ fn production_variable(input: RemainingInput) -> Result<RemainingInput, ()> {
 
     // Then zero or more of any of these.
     loop {
+        // If we find a valid production, consume the characters and continue.
         if let Ok(i) = production_letter(input) {
             input = i;
             continue;
@@ -162,6 +163,7 @@ fn production_variable(input: RemainingInput) -> Result<RemainingInput, ()> {
             continue;
         }
 
+        // Otherwise exit the loop.
         break;
     }
 

@@ -36,3 +36,42 @@ allowing the test cases to remain simple for the less complex productions,
 and use test more complex input strings for the more complex non terminals.
 
 # Language choice
+
+### Pros:
+
+Rust's string slices (&str) and lifetimes let me handle pointers to strings without having to worry about memory bugs.
+Additionally the entire parser makes no heap allocations.
+
+Pattern matching over strings makes checking for sets of characters easy.
+
+The rust std library has built in support for UTF 8 correctness which provides robustness when dealing with multi byte characters such as ×, ∸, ⊤ etc.
+
+This code snippet highlights some of these points.
+```rs
+fn production_digit(input: RemainingInput) -> Result<RemainingInput, ()> {
+    match input.peek()? {
+        '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => Ok(input.slice()),
+        _ => Err(()),
+    }
+}
+```
+
+`input.peek()` returns a `char` which is a valide unicode code point, I don't have to worry about multi byte characters.
+
+`input.slice()` returns a subslice with the first character removed, no copying or allocations.
+
+The match statement makes checking for valid digits concise and readable, allows compiler to optimize the best comparison logic.
+
+The residual operator `?` shows one of the reasons I designed my function signatures around `Result`, input.peek returns an `Err` if the input is empty and I can early return very concisely. It allows me to propagate errors with less boilerplate.
+
+### Cons:
+
+Working with lifetimes and references instead of pointers can be more complex. For this assignment it was a simple case but it can get especially more complex, especially if for example i wanted to use multiple cores working on the same data.
+
+All the niceties of the ownership model/borrow checking and others increase compile times.
+
+### Outcome:
+
+Rust is a great choice for a task like this if the speed of the parser is important.
+If the benefits of zero copies are not important there are other languages that could produce better ergonomics in some areas.
+This would especially be the case for creating an AST, where in rust I would need to work with safe pointer types such as `Box` or `Rc`/`Arc`, in a language such as python or java, references to objects are handled easily.
